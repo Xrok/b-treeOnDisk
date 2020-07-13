@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/b_tree_v2_0.dir/main.cpp.o CMakeFiles/b_tree_v2_0.dir/tests/disk/testing.cpp.o  -o b_tree_v2_0  lib/libgtestd.a -lpthread 

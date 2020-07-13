@@ -1,0 +1,14 @@
+# Target labels
+ googletest
+# Source files and their labels
+/home/sergio/Documents/paralela/b-tree-on-disk/b+tree/cmake-build-debug/googletest-download/CMakeFiles/googletest
+/home/sergio/Documents/paralela/b-tree-on-disk/b+tree/cmake-build-debug/googletest-download/CMakeFiles/googletest.rule
+/home/sergio/Documents/paralela/b-tree-on-disk/b+tree/cmake-build-debug/googletest-download/CMakeFiles/googletest-complete.rule
+/home/sergio/Documents/paralela/b-tree-on-disk/b+tree/cmake-build-debug/googletest-download/googletest-prefix/src/googletest-stamp/googletest-install.rule
+/home/sergio/Documents/paralela/b-tree-on-disk/b+tree/cmake-build-debug/googletest-download/googletest-prefix/src/googletest-stamp/googletest-mkdir.rule
+/home/sergio/Documents/paralela/b-tree-on-disk/b+tree/cmake-build-debug/googletest-download/googletest-prefix/src/googletest-stamp/googletest-download.rule
+/home/sergio/Documents/paralela/b-tree-on-disk/b+tree/cmake-build-debug/googletest-download/googletest-prefix/src/googletest-stamp/googletest-update.rule
+/home/sergio/Documents/paralela/b-tree-on-disk/b+tree/cmake-build-debug/googletest-download/googletest-prefix/src/googletest-stamp/googletest-patch.rule
+/home/sergio/Documents/paralela/b-tree-on-disk/b+tree/cmake-build-debug/googletest-download/googletest-prefix/src/googletest-stamp/googletest-configure.rule
+/home/sergio/Documents/paralela/b-tree-on-disk/b+tree/cmake-build-debug/googletest-download/googletest-prefix/src/googletest-stamp/googletest-build.rule
+/home/sergio/Documents/paralela/b-tree-on-disk/b+tree/cmake-build-debug/googletest-download/googletest-prefix/src/googletest-stamp/googletest-test.rule

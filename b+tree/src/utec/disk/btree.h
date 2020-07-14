@@ -173,9 +173,11 @@ namespace utec
                 int iter = 0;
                 int i;
 
-                #pragma omp parallel sections
+                #pragma omp parallel firstprivate(iter, i) num_threads(3)
                 {
-                    #pragma omp section firstprivate(iter, i)
+                #pragma omp sections
+                {
+                    #pragma omp section 
                     {
                         for (i = 0; iter < ceil(BTREE_ORDER / 2.0); i++)
                         {
@@ -187,7 +189,7 @@ namespace utec
                         child1.children[i] = node_in_overflow.children[iter];
                     }
 
-                    #pragma omp section firstprivate(iter)
+                    #pragma omp section
                     {
                         iter = ceil(BTREE_ORDER / 2.0);
                         parent.insert_in_node(pos, node_in_overflow.data[iter]);
@@ -200,7 +202,7 @@ namespace utec
                         }
                     }
 
-                    #pragma omp section firstprivate(iter, i)
+                    #pragma omp section
                     {
                         iter = ceil(BTREE_ORDER / 2.0) + (node_in_overflow.children[0] != 0);
                         for (i = 0; iter < BTREE_ORDER + 1; i++)
@@ -216,9 +218,10 @@ namespace utec
                         parent.children[pos + 1] = child2.page_id;
                     }
                 }
+                
 
                 // implicit barrier
-                #pragma omp parallel single
+                #pragma omp single
                 {
                     #pragma omp task
                     write_node(parent.page_id, parent);
@@ -227,6 +230,7 @@ namespace utec
                     #pragma omp task
                     write_node(child2.page_id, child2);
                     #pragma omp taskwait
+                }
                 }
             }
 

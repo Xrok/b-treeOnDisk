@@ -243,40 +243,54 @@ namespace utec
                 int pos = 0;
                 int iter = 0;
                 int i;
-                for (i = 0; iter < ceil(BTREE_ORDER / 2.0); i++)
+
+                #pragma omp parallel firstprivate(iter, i) num_threads(2)
                 {
-                    child1.children[i] = node_in_overflow.children[iter];
-                    child1.data[i] = node_in_overflow.data[iter];
-                    child1.count++;
-                    iter++;
-                }
-                child1.children[i] = node_in_overflow.children[iter];
-
-                node_in_overflow.data[0] = node_in_overflow.data[iter];
-
-                child1.right = child2.page_id;
-
-                if (node_in_overflow.children[0] != 0)
+                #pragma omp sections
                 {
-                    iter++; // the middle element
-                }
+                    #pragma omp section
+                    {
+                        for (i = 0; iter < ceil(BTREE_ORDER / 2.0); i++)
+                        {
+                            child1.children[i] = node_in_overflow.children[iter];
+                            child1.data[i] = node_in_overflow.data[iter];
+                            child1.count++;
+                            iter++;
+                        }
+                        child1.children[i] = node_in_overflow.children[iter];
 
-                for (i = 0; iter < BTREE_ORDER + 1; i++)
+                        node_in_overflow.data[0] = node_in_overflow.data[iter];
+                        child1.right = child2.page_id;
+                    }
+
+                    #pragma omp section
+                    {
+                        iter = ceil(BTREE_ORDER / 2.0) + (node_in_overflow.children[0] != 0);
+
+                        for (i = 0; iter < BTREE_ORDER + 1; i++)
+                        {
+                            child2.children[i] = node_in_overflow.children[iter];
+                            child2.data[i] = node_in_overflow.data[iter];
+                            child2.count++;
+                            iter++;
+                        }
+                        child2.children[i] = node_in_overflow.children[iter];
+
+                        node_in_overflow.children[0] = child1.page_id;
+                        node_in_overflow.children[1] = child2.page_id;
+                        node_in_overflow.count = 1;
+                    }
+                }
+                #pragma omp single
                 {
-                    child2.children[i] = node_in_overflow.children[iter];
-                    child2.data[i] = node_in_overflow.data[iter];
-                    child2.count++;
-                    iter++;
+                    #pragma omp task
+                    write_node(node_in_overflow.page_id, node_in_overflow);
+                    #pragma omp task
+                    write_node(child1.page_id, child1);
+                    #pragma omp task
+                    write_node(child2.page_id, child2);
                 }
-                child2.children[i] = node_in_overflow.children[iter];
-
-                node_in_overflow.children[0] = child1.page_id;
-                node_in_overflow.children[1] = child2.page_id;
-                node_in_overflow.count = 1;
-
-                write_node(node_in_overflow.page_id, node_in_overflow);
-                write_node(child1.page_id, child1);
-                write_node(child2.page_id, child2);
+                }
             }
 
             T succesor(node &ptr)

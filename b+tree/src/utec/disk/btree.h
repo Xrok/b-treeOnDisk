@@ -172,43 +172,62 @@ namespace utec
 
                 int iter = 0;
                 int i;
-                for (i = 0; iter < ceil(BTREE_ORDER / 2.0); i++)
+
+                #pragma omp parallel sections
                 {
-                    child1.children[i] = node_in_overflow.children[iter];
-                    child1.data[i] = node_in_overflow.data[iter];
-                    child1.count++;
-                    iter++;
+                    #pragma omp section firstprivate(iter, i)
+                    {
+                        for (i = 0; iter < ceil(BTREE_ORDER / 2.0); i++)
+                        {
+                            child1.children[i] = node_in_overflow.children[iter];
+                            child1.data[i] = node_in_overflow.data[iter];
+                            child1.count++;
+                            iter++;
+                        }
+                        child1.children[i] = node_in_overflow.children[iter];
+                    }
+
+                    #pragma omp section firstprivate(iter)
+                    {
+                        iter = ceil(BTREE_ORDER / 2.0);
+                        parent.insert_in_node(pos, node_in_overflow.data[iter]);
+
+                        if (node_in_overflow.children[0] == 0)
+                        {
+                            child2.right = child1.right;
+                            child1.right = child2.page_id;
+                            parent.children[pos + 1] = child2.page_id;
+                        }
+                    }
+
+                    #pragma omp section firstprivate(iter, i)
+                    {
+                        iter = ceil(BTREE_ORDER / 2.0) + (node_in_overflow.children[0] != 0);
+                        for (i = 0; iter < BTREE_ORDER + 1; i++)
+                        {
+                            child2.children[i] = node_in_overflow.children[iter];
+                            child2.data[i] = node_in_overflow.data[iter];
+                            child2.count++;
+                            iter++;
+                        }
+                        child2.children[i] = node_in_overflow.children[iter];
+
+                        parent.children[pos] = child1.page_id;
+                        parent.children[pos + 1] = child2.page_id;
+                    }
                 }
-                child1.children[i] = node_in_overflow.children[iter];
 
-                parent.insert_in_node(pos, node_in_overflow.data[iter]);
-
-                if (node_in_overflow.children[0] != 0)
+                // implicit barrier
+                #pragma omp parallel single
                 {
-                    iter++;
+                    #pragma omp task
+                    write_node(parent.page_id, parent);
+                    #pragma omp task
+                    write_node(child1.page_id, child1);
+                    #pragma omp task
+                    write_node(child2.page_id, child2);
+                    #pragma omp taskwait
                 }
-                else
-                {
-                    child2.right = child1.right;
-                    child1.right = child2.page_id;
-                    parent.children[pos + 1] = child2.page_id;
-                }
-
-                for (i = 0; iter < BTREE_ORDER + 1; i++)
-                {
-                    child2.children[i] = node_in_overflow.children[iter];
-                    child2.data[i] = node_in_overflow.data[iter];
-                    child2.count++;
-                    iter++;
-                }
-                child2.children[i] = node_in_overflow.children[iter];
-
-                parent.children[pos] = child1.page_id;
-                parent.children[pos + 1] = child2.page_id;
-
-                write_node(parent.page_id, parent);
-                write_node(child1.page_id, child1);
-                write_node(child2.page_id, child2);
             }
 
             void split_root()

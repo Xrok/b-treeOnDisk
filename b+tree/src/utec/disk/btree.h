@@ -218,20 +218,11 @@ namespace utec
                         parent.children[pos + 1] = child2.page_id;
                     }
                 }
+                }
+                write_node(parent.page_id, parent);
+                write_node(child1.page_id, child1);
+                write_node(child2.page_id, child2);
                 
-
-                // implicit barrier
-                #pragma omp single
-                {
-                    #pragma omp task
-                    write_node(parent.page_id, parent);
-                    #pragma omp task
-                    write_node(child1.page_id, child1);
-                    #pragma omp task
-                    write_node(child2.page_id, child2);
-                    #pragma omp taskwait
-                }
-                }
             }
 
             void split_root()
@@ -281,16 +272,11 @@ namespace utec
                         node_in_overflow.count = 1;
                     }
                 }
-                #pragma omp single
-                {
-                    #pragma omp task
-                    write_node(node_in_overflow.page_id, node_in_overflow);
-                    #pragma omp task
-                    write_node(child1.page_id, child1);
-                    #pragma omp task
-                    write_node(child2.page_id, child2);
                 }
-                }
+
+                write_node(node_in_overflow.page_id, node_in_overflow);
+                write_node(child1.page_id, child1);
+                write_node(child2.page_id, child2);
             }
 
             T succesor(node &ptr)

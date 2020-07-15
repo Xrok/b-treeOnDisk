@@ -29,10 +29,10 @@ namespace utec
                 return it;
             }
 
-            iterator find(const T &object)
+            iterator find(const T &object, std::shared_ptr<pagemanager> otherpm = nullptr)
             {
-                node root = read_node(header.root_id);
-                auto it = find(object, root);
+                node root = read_node(header.root_id, otherpm);
+                auto it = find(object, root, otherpm);
                 if (*it == object)
                 {
                     return it;
@@ -43,7 +43,7 @@ namespace utec
                 }
             }
 
-            iterator find(const T &object, const node &other)
+            iterator find(const T &object, const node &other, std::shared_ptr<pagemanager> otherpm)
             {
                 int pos = 0;
                 if (other.children[0] != 0)
@@ -52,8 +52,8 @@ namespace utec
                     {
                         pos++;
                     }
-                    node child = read_node(other.children[pos]);
-                    return find(object, child);
+                    node child = read_node(other.children[pos], otherpm);
+                    return find(object, child, otherpm);
                 }
                 else
                 {
@@ -61,7 +61,11 @@ namespace utec
                     {
                         pos++;
                     }
-                    iterator it(pm);
+                    iterator it;
+                    if (otherpm)
+                        it = iterator(otherpm);
+                    else
+                        it = iterator(pm);
                     it.currentPosition = other;
                     it.index = pos;
                     return it;
@@ -118,10 +122,13 @@ namespace utec
                 return ret;
             }
 
-            node read_node(long page_id)
+            node read_node(long page_id, std::shared_ptr<pagemanager> otherpm = nullptr)
             {
                 node n{-1};
-                pm->recover(page_id, n);
+                if (!otherpm)
+                    pm->recover(page_id, n);
+                else
+                    otherpm->recover(page_id, n);
                 return n;
             }
 

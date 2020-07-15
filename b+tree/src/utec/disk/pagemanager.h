@@ -50,11 +50,8 @@ namespace utec {
             template<class Register>
             bool recover(const long &n, Register &reg) {
                 clear();
-                #pragma omp critical
-                {
-                    seekg(n * sizeof(Register), std::ios::beg);
-                    read(reinterpret_cast<char *>(&reg), sizeof(reg));
-                }
+                seekg(n * sizeof(Register), std::ios::beg);
+                read(reinterpret_cast<char *>(&reg), sizeof(reg));
                 
                 return gcount() > 0;
             }

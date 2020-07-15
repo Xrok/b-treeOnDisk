@@ -21,6 +21,7 @@ namespace utec {
                 if (!good() || trunc) {
                     empty = true;
                     //trunc : any contents that existed in the file before it is open are discarded
+                    #pragma omp critical
                     open(file_name.data(), std::ios::in | std::ios::out | std::ios::trunc | std::ios::binary);
                 }
             }
@@ -34,19 +35,27 @@ namespace utec {
             template<class Register>
             void save(const long &n, Register &reg) {
                 clear();
-                //off: offset value
-                //way: object of type ios_base::seekdir (begin current or end)
-                seekp(n * sizeof(Register), std::ios::beg);
-                //pointer to an array of at least n characters
-                //reinterpret_cast convert any pointer object to char pointer (work with bits)
-                write(reinterpret_cast<char *>(&reg), sizeof(reg));
+                #pragma omp critical
+                {
+                    //off: offset value
+                    //way: object of type ios_base::seekdir (begin current or end)
+                    seekp(n * sizeof(Register), std::ios::beg);
+                    //pointer to an array of at least n characters
+                    //reinterpret_cast convert any pointer object to char pointer (work with bits)
+                    write(reinterpret_cast<char *>(&reg), sizeof(reg));
+                }
+                
             }
 
             template<class Register>
             bool recover(const long &n, Register &reg) {
                 clear();
-                seekg(n * sizeof(Register), std::ios::beg);
-                read(reinterpret_cast<char *>(&reg), sizeof(reg));
+                #pragma omp critical
+                {
+                    seekg(n * sizeof(Register), std::ios::beg);
+                    read(reinterpret_cast<char *>(&reg), sizeof(reg));
+                }
+                
                 return gcount() > 0;
             }
 
@@ -54,8 +63,11 @@ namespace utec {
             void erase(const long &n) {
                 clear();
                 char mark = 'N';
-                seekg(n * sizeof(Register), std::ios::beg);
-                write(&mark, 1);
+                #pragma omp critical
+                {
+                    seekg(n * sizeof(Register), std::ios::beg);
+                    write(&mark, 1);
+                }
             }
 
         private:

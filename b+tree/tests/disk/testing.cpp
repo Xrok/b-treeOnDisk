@@ -27,25 +27,20 @@ TEST_F(DiskBasedBtree, TestC) {
 
     std::shared_ptr<pagemanager> pm = std::make_shared<pagemanager>("b+tree.index", true);
     btree< int, BTREE_ORDER> bt(pm);
-    srand (time(NULL));
-    int num=0;
-
 
     for(int i = 1; i < 100; i++) {
-         num = rand() % 1000 + 1;
-         bt.insert(num);
-     }
-    bt.insert(150);
-    bt.insert(200);
+          bt.insert(i);
+    }
 
-
-
-    auto iter = bt.find(150);
-    auto end = bt.find(200);
-    for(; iter != end; ++iter) {
-        auto pair = *iter;
-        
-        std::cout<< pair <<  '\n';
+    #pragma omp parallel num_threads(5)
+    {
+         std::shared_ptr<pagemanager> local_pm = std::make_shared<pagemanager>("b+tree.index", false);
+    
+         #pragma omp for
+         for(int i = 1; i < 100; i++) {
+             auto it = bt.find(i, local_pm);
+             std::cout << *it << " found\n";
+         }
     }
 
 }
